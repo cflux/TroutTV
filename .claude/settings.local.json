@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir /s /b)",
+      "Bash(ffmpeg:*)",
+      "Bash(dir /B /S D:claudeTroutTV*.py)",
+      "Bash(python setup.py:*)",
+      "Bash(tree:*)",
+      "Bash(ls:*)"
+    ]
+  }
+}

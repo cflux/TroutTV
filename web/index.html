@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TroutTV - Channel Management</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>TroutTV IPTV Server</h1>
+            <div class="header-actions">
+                <button id="addChannelBtn" class="btn btn-primary">Add Channel</button>
+                <a href="/playlist.m3u" class="btn btn-secondary" download>Download M3U</a>
+                <a href="/xmltv.xml" class="btn btn-secondary" download>Download EPG</a>
+            </div>
+        </header>
+
+        <main>
+            <div id="channelList" class="channel-list">
+                <p class="loading">Loading channels...</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Channel Edit Modal -->
+    <div id="channelModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add Channel</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="channelForm">
+                    <input type="hidden" id="channelId" name="id">
+
+                    <div class="form-group">
+                        <label for="channelName">Channel Name</label>
+                        <input type="text" id="channelName" name="name" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="channelNumber">Channel Number</label>
+                            <input type="number" id="channelNumber" name="number" min="1" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="channelCategory">Category</label>
+                            <input type="text" id="channelCategory" name="category" value="General">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="channelLogo">Logo URL</label>
+                        <input type="url" id="channelLogo" name="logo_url" placeholder="https://example.com/logo.png">
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="channelLoop" name="loop" checked>
+                            Loop Playlist
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="channelEnabled" name="enabled" checked>
+                            Enabled
+                        </label>
+                    </div>
+
+                    <h3>Playlist Items</h3>
+                    <div id="playlistItems" class="playlist-items">
+                        <!-- Playlist items will be added here -->
+                    </div>
+                    <button type="button" id="addPlaylistItemBtn" class="btn btn-secondary">Add Item</button>
+
+                    <h3>Stream Settings</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="videoBitrate">Video Bitrate (kbps)</label>
+                            <input type="number" id="videoBitrate" name="video_bitrate" value="3000" min="500">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="audioBitrate">Audio Bitrate (kbps)</label>
+                            <input type="number" id="audioBitrate" name="audio_bitrate" value="128" min="64">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="resolution">Resolution</label>
+                            <select id="resolution" name="resolution">
+                                <option value="original">Original</option>
+                                <option value="1280x720" selected>720p (1280x720)</option>
+                                <option value="1920x1080">1080p (1920x1080)</option>
+                                <option value="854x480">480p (854x480)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="transcodePreset">Transcode Preset</label>
+                            <select id="transcodePreset" name="transcode_preset">
+                                <option value="software_fast" selected>Software Fast</option>
+                                <option value="software_medium">Software Medium</option>
+                                <option value="qsv">Intel QSV</option>
+                                <option value="nvenc">NVIDIA NVENC</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Channel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+# TroutTV Portainer Stack Template
+# Copy this entire file into Portainer's stack editor
+#
+# BEFORE DEPLOYING:
+# 1. Build the image: docker build -t trouttv:latest .
+# 2. Update BASE_URL with your server's IP address
+# 3. Update the media volume path to your actual media directory
+# 4. Adjust port if 8000 is already in use
+
+version: '3.8'
+
+services:
+  trouttv:
+    image: trouttv:latest
+    container_name: trouttv
+    hostname: trouttv
+
+    ports:
+      # Format: "HOST_PORT:CONTAINER_PORT"
+      # Change 8000 to use a different port on your host
+      - "8000:8000"
+
+    volumes:
+      # Persistent channel configurations (Docker managed volume)
+      - trouttv_channels:/data/channels
+
+      # Temporary stream files (Docker managed volume)
+      - trouttv_streams:/streams
+
+      # YOUR MEDIA FILES - UPDATE THIS PATH!
+      # Windows format: - D:/path/to/media:/data/media
+      # Linux format:   - /mnt/media:/data/media
+      - ./data/media:/data/media
+
+    environment:
+      # ==========================================
+      # REQUIRED: UPDATE THIS WITH YOUR SERVER IP
+      # ==========================================
+      - BASE_URL=http://192.168.1.100:8000
+      # Examples:
+      #   - BASE_URL=http://192.168.1.50:8000
+      #   - BASE_URL=http://trouttv.local:8000
+      #   - BASE_URL=https://trouttv.yourdomain.com
+
+      # Server settings (usually don't need to change)
+      - HOST=0.0.0.0
+      - PORT=8000
+
+      # Container paths (don't change)
+      - CHANNELS_DIR=/data/channels
+      - MEDIA_DIR=/data/media
+      - STREAMS_DIR=/streams
+
+      # Stream behavior settings
+      - STREAM_TIMEOUT=60          # Stop streams after 60 seconds of no activity
+      - CLEANUP_INTERVAL=30        # Check for idle streams every 30 seconds
+      - EPG_DAYS_AHEAD=2           # Generate 2 days of EPG data
+
+      # FFmpeg settings (auto-detected, usually fine)
+      - FFMPEG_PATH=ffmpeg
+      - FFPROBE_PATH=ffprobe
+
+    restart: unless-stopped
+
+    # Health monitoring
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    # Portainer labels
+    labels:
+      - "com.trouttv.description=IPTV Streaming Server"
+      - "com.trouttv.version=1.0.0"
+      - "traefik.enable=false"
+
+volumes:
+  trouttv_channels:
+    driver: local
+
+  trouttv_streams:
+    driver: local

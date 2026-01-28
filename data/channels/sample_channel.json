@@ -1,0 +1,32 @@
+{
+  "id": "sample_channel",
+  "name": "Sample Channel",
+  "number": 1,
+  "category": "General",
+  "logo_url": "https://via.placeholder.com/150",
+  "playlist": [
+    {
+      "file_path": "D:/claude/TroutTV/data/media/sample1.mp4",
+      "duration": 600,
+      "title": "Sample Video 1",
+      "description": "First sample video"
+    },
+    {
+      "file_path": "D:/claude/TroutTV/data/media/sample2.mp4",
+      "duration": 600,
+      "title": "Sample Video 2",
+      "description": "Second sample video"
+    }
+  ],
+  "loop": true,
+  "start_time": "2026-01-26T00:00:00Z",
+  "stream_settings": {
+    "video_bitrate": 3000,
+    "audio_bitrate": 128,
+    "segment_duration": 6,
+    "playlist_size": 10,
+    "transcode_preset": "software_fast",
+    "resolution": "1280x720"
+  },
+  "enabled": true
+}

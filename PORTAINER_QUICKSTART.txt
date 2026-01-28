@@ -1,0 +1,149 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    TroutTV - Portainer Quick Start                           ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+STEP 1: Build the Docker Image
+───────────────────────────────────────────────────────────────────────────────
+Open terminal/PowerShell on your Docker host:
+
+    cd D:\claude\TroutTV
+    docker build -t trouttv:latest .
+
+Verify:
+    docker images | grep trouttv
+
+
+STEP 2: Get Your Configuration Info
+───────────────────────────────────────────────────────────────────────────────
+Find your server IP:
+    Windows:  ipconfig
+    Linux:    ip addr
+
+Example: 192.168.1.100
+
+
+STEP 3: Deploy Stack in Portainer
+───────────────────────────────────────────────────────────────────────────────
+1. Login to Portainer (http://your-server:9000)
+2. Click "Stacks" → "+ Add stack"
+3. Stack name: trouttv
+4. Build method: Web editor
+5. Copy content from: portainer-stack.yml
+6. **CRITICAL: Edit these two lines:**
+
+   Line 31: - D:/YOUR/MEDIA/PATH:/data/media
+   Line 38: - BASE_URL=http://YOUR_SERVER_IP:8000
+
+7. Click "Deploy the stack"
+
+
+STEP 4: Verify & Access
+───────────────────────────────────────────────────────────────────────────────
+Check status:
+    Portainer → Containers → trouttv should be green with "healthy"
+
+Access web UI:
+    http://YOUR_SERVER_IP:8000
+
+Test URLs:
+    Web UI:     http://YOUR_SERVER_IP:8000
+    M3U:        http://YOUR_SERVER_IP:8000/playlist.m3u
+    EPG:        http://YOUR_SERVER_IP:8000/xmltv.xml
+    Health:     http://YOUR_SERVER_IP:8000/health
+
+
+STEP 5: Create Your First Channel
+───────────────────────────────────────────────────────────────────────────────
+1. Open web UI
+2. Click "Add Channel"
+3. Fill in:
+   - Name: Test Channel
+   - Number: 1
+   - Add playlist item:
+     * File Path: /data/media/yourfile.mp4
+     * Duration: 600 (seconds)
+     * Title: Test Video
+4. Click "Save Channel"
+
+
+IMPORTANT FILE PATHS
+───────────────────────────────────────────────────────────────────────────────
+If your media is at:      D:\Media\Movies\movie.mp4
+Use in channel config:    /data/media/Movies/movie.mp4
+
+The "/data/media" part is the container mount point, everything after that
+matches your actual folder structure.
+
+
+COMMON PORTS
+───────────────────────────────────────────────────────────────────────────────
+Default:    8000
+Alternative: 8080, 8888, 9000 (if 8000 is taken)
+
+To change port, edit BOTH:
+    ports:
+      - "8080:8000"    ← Change first number only
+    environment:
+      - BASE_URL=http://YOUR_IP:8080    ← Match the port here
+
+
+TROUBLESHOOTING
+───────────────────────────────────────────────────────────────────────────────
+Can't access web UI:
+    → Check container is running (green in Portainer)
+    → Check firewall allows port 8000
+    → Try http://127.0.0.1:8000 if on same machine
+
+Container won't start:
+    → Check Portainer logs (Containers → trouttv → Logs)
+    → Verify image exists: docker images | grep trouttv
+    → Check media path exists and is accessible
+
+Streams won't play:
+    → Verify file paths start with /data/media/
+    → Check files exist in your media directory
+    → Check container logs for FFmpeg errors
+
+
+USEFUL COMMANDS
+───────────────────────────────────────────────────────────────────────────────
+View logs:
+    docker logs trouttv -f
+
+Restart container:
+    docker restart trouttv
+
+Check health:
+    curl http://localhost:8000/health
+
+Access container shell:
+    docker exec -it trouttv /bin/bash
+
+
+IPTV CLIENT SETUP (Quick Reference)
+───────────────────────────────────────────────────────────────────────────────
+VLC:
+    Media → Open Network Stream
+    URL: http://YOUR_IP:8000/playlist.m3u
+
+Jellyfin:
+    Dashboard → Live TV → Add Tuner
+    Type: M3U Tuner
+    URL: http://YOUR_IP:8000/playlist.m3u
+    EPG: http://YOUR_IP:8000/xmltv.xml
+
+TiviMate:
+    Add Playlist → M3U URL
+    URL: http://YOUR_IP:8000/playlist.m3u
+    EPG: http://YOUR_IP:8000/xmltv.xml
+
+
+NEED MORE HELP?
+───────────────────────────────────────────────────────────────────────────────
+Full guide:     PORTAINER_DEPLOY.md
+Documentation:  README.md
+Quick start:    QUICKSTART.md
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Replace YOUR_SERVER_IP and YOUR/MEDIA/PATH with your actual values!         ║
+╚══════════════════════════════════════════════════════════════════════════════╝

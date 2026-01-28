@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  trouttv:
+    # For Portainer: Build the image first with: docker build -t trouttv:latest .
+    # Or use image from registry: image: yourusername/trouttv:latest
+    image: trouttv:latest
+    container_name: trouttv
+    hostname: trouttv
+
+    ports:
+      # Change the first port (8000) to expose on different host port if needed
+      - "8000:8000"
+
+    volumes:
+      # Named volumes - managed by Docker, persists data
+      - trouttv_channels:/data/channels
+      - trouttv_streams:/streams
+
+      # Bind mount - point to your media directory on host
+      # IMPORTANT: Change this path to your actual media location!
+      # Windows example: - D:/Media:/data/media
+      # Linux example: - /mnt/media:/data/media
+      - ./data/media:/data/media
+
+    environment:
+      # Server Configuration
+      - HOST=0.0.0.0
+      - PORT=8000
+
+      # IMPORTANT: Change this to your server's IP address or domain
+      # Examples:
+      #   - BASE_URL=http://192.168.1.100:8000
+      #   - BASE_URL=http://trouttv.yourdomain.com:8000
+      - BASE_URL=http://localhost:8000
+
+      # Directory paths (container paths - don't change unless you know what you're doing)
+      - CHANNELS_DIR=/data/channels
+      - MEDIA_DIR=/data/media
+      - STREAMS_DIR=/streams
+
+      # Stream settings
+      - STREAM_TIMEOUT=60          # Seconds before stopping idle streams
+      - CLEANUP_INTERVAL=30        # Seconds between cleanup checks
+      - EPG_DAYS_AHEAD=2           # Days of EPG to generate
+
+      # FFmpeg paths (usually auto-detected)
+      - FFMPEG_PATH=ffmpeg
+      - FFPROBE_PATH=ffprobe
+
+    restart: unless-stopped
+
+    # Health check to monitor container status
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    # Labels for organization in Portainer
+    labels:
+      - "com.trouttv.description=IPTV Streaming Server"
+      - "com.trouttv.version=1.0.0"
+      - "traefik.enable=false"  # Set to true if using Traefik reverse proxy
+
+# Named volumes for persistent data
+volumes:
+  trouttv_channels:
+    driver: local
+    labels:
+      - "com.trouttv.description=Channel configuration files"
+
+  trouttv_streams:
+    driver: local
+    labels:
+      - "com.trouttv.description=Temporary HLS stream segments"
+
+# Optional: Create a custom network
+# Uncomment if you want to connect to other containers (e.g., reverse proxy)
+# networks:
+#   trouttv_network:
+#     driver: bridge
