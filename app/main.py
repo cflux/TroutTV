@@ -1,6 +1,7 @@
 import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 from pathlib import Path
@@ -73,6 +74,15 @@ app = FastAPI(
     description="Transform media files into live TV channels with HLS streaming",
     version=VERSION,
     lifespan=lifespan
+)
+
+# Add CORS middleware to allow media players to access streams
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins for IPTV clients
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Include routers

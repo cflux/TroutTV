@@ -6,7 +6,11 @@
       "Bash(dir /B /S D:claudeTroutTV*.py)",
       "Bash(python setup.py:*)",
       "Bash(tree:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(test:*)",
+      "Bash(ipconfig:*)",
+      "Bash(curl:*)",
+      "Bash(python -m json.tool:*)"
     ]
   }
 }

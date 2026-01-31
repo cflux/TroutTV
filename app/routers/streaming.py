@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Response
 from fastapi.responses import FileResponse, PlainTextResponse
 from pathlib import Path
 from app.models.stream import StreamStatus
@@ -30,9 +30,15 @@ async def get_master_playlist(channel_id: str):
     # Return simple master playlist
     content = f"#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-STREAM-INF:BANDWIDTH=3000000\n{stream_url}\n"
 
-    return PlainTextResponse(
+    return Response(
         content=content,
-        media_type="application/vnd.apple.mpegurl"
+        media_type="application/vnd.apple.mpegurl",
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0",
+            "Access-Control-Allow-Origin": "*"
+        }
     )
 
 
@@ -53,7 +59,13 @@ async def get_stream_playlist(channel_id: str):
 
     return FileResponse(
         playlist_path,
-        media_type="application/vnd.apple.mpegurl"
+        media_type="application/vnd.apple.mpegurl",
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0",
+            "Access-Control-Allow-Origin": "*"
+        }
     )
 
 
@@ -81,7 +93,10 @@ async def get_segment(channel_id: str, segment_name: str):
 
     return FileResponse(
         segment_path,
-        media_type="video/MP2T"
+        media_type="video/MP2T",
+        headers={
+            "Access-Control-Allow-Origin": "*"
+        }
     )
 
 

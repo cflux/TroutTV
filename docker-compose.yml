@@ -53,6 +53,17 @@ services:
       - FFMPEG_PATH=ffmpeg
       - FFPROBE_PATH=ffprobe
 
+    # Intel QSV Hardware Acceleration
+    # Exposes the Intel GPU to the container for hardware transcoding
+    devices:
+      - /dev/dri:/dev/dri
+
+    # Add video group for GPU access (adjust GID if needed)
+    # Run 'getent group video' or 'getent group render' on host to find correct GID
+    group_add:
+      - "44"    # Common video group GID (may need to change based on your system)
+      - "109"   # Common render group GID (may need to change based on your system)
+
     restart: unless-stopped
 
     # Health check to monitor container status
