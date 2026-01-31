@@ -26,7 +26,7 @@ services:
       # IMPORTANT: Change this path to your actual media location!
       # Windows example: - D:/Media:/data/media
       # Linux example: - /mnt/media:/data/media
-      - ./data/media:/data/media
+      - /data/media:/data/media
 
     environment:
       # Server Configuration
