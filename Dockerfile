@@ -17,7 +17,7 @@ COPY app/ ./app/
 COPY web/ ./web/
 
 # Create directories for data and streams
-RUN mkdir -p /data/channels /data/media /streams
+RUN mkdir -p /data/channels /data/media /data/logos /streams
 
 # Expose port
 EXPOSE 8000

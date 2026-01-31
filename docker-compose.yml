@@ -21,6 +21,7 @@ services:
     volumes:
       # Named volumes - managed by Docker, persists data
       - trouttv_channels:/data/channels
+      - trouttv_logos:/data/logos
       - trouttv_streams:/streams
 
       # Bind mount - point to your media directory on host
@@ -76,6 +77,11 @@ volumes:
     driver: local
     labels:
       - "com.trouttv.description=Channel configuration files"
+
+  trouttv_logos:
+    driver: local
+    labels:
+      - "com.trouttv.description=Uploaded channel logos"
 
   trouttv_streams:
     driver: local
