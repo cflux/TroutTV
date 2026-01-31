@@ -377,7 +377,7 @@ function navigateToFolder(path) {
 
 function selectMediaFile(path, duration) {
     if (currentPlaylistInput) {
-        const fullPath = `D:/claude/TroutTV/data/media/${path}`;
+        const fullPath = `/data/media/${path}`;
         currentPlaylistInput.value = fullPath;
 
         const playlistItem = currentPlaylistInput.closest('.playlist-item');
