@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 from pathlib import Path
 
-from app.config import settings
+from app.config import settings, VERSION
 from app.routers import channels, streaming, metadata, uploads
 from app.services.stream_manager import stream_manager
 from app.utils.ffmpeg import ffmpeg_builder
@@ -71,7 +71,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="TroutTV IPTV Server",
     description="Transform media files into live TV channels with HLS streaming",
-    version="1.0.0",
+    version=VERSION,
     lifespan=lifespan
 )
 
@@ -104,6 +104,12 @@ async def health_check():
         "status": "healthy",
         "active_streams": len(stream_manager.active_streams)
     }
+
+
+@app.get("/version")
+async def get_version():
+    """Get application version."""
+    return {"version": VERSION}
 
 
 if __name__ == "__main__":

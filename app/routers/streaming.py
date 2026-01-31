@@ -25,7 +25,7 @@ async def get_master_playlist(channel_id: str):
 
     # For single-bitrate streams, we just redirect to the stream playlist
     # In a multi-bitrate setup, this would list multiple quality levels
-    stream_url = f"stream.m3u8"
+    stream_url = f"{settings.base_url}/stream/{channel_id}/stream.m3u8"
 
     # Return simple master playlist
     content = f"#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-STREAM-INF:BANDWIDTH=3000000\n{stream_url}\n"

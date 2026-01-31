@@ -2,6 +2,9 @@ from pydantic_settings import BaseSettings
 from pathlib import Path
 import os
 
+# TroutTV Version
+VERSION = "1.0.0"
+
 
 class Settings(BaseSettings):
     # Server settings

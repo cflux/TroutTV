@@ -23,6 +23,7 @@ const playlistItemsContainer = document.getElementById('playlistItems');
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     loadChannels();
+    loadVersion();
     setupEventListeners();
 });
 
@@ -55,6 +56,17 @@ function setupEventListeners() {
             closeMediaBrowser();
         }
     });
+}
+
+async function loadVersion() {
+    try {
+        const response = await fetch(`${API_BASE}/version`);
+        const data = await response.json();
+        document.getElementById('versionInfo').textContent = `v${data.version}`;
+    } catch (error) {
+        console.error('Error loading version:', error);
+        document.getElementById('versionInfo').textContent = '';
+    }
 }
 
 async function loadChannels() {
