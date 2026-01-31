@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   trouttv:
     # Option 1: Use Docker Hub image (change yourusername)
