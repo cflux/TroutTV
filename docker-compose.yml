@@ -2,14 +2,20 @@ version: '3.8'
 
 services:
   trouttv:
-    # For Portainer: Build the image first with: docker build -t trouttv:latest .
-    # Or use image from registry: image: yourusername/trouttv:latest
+    # Option 1: Use Docker Hub image (change yourusername)
+    # image: yourusername/trouttv:latest
+
+    # Option 2: Use GitHub Container Registry
+    # image: ghcr.io/yourusername/trouttv:latest
+
+    # Option 3: Use local image (must build first: docker build -t trouttv:latest .)
     image: trouttv:latest
     container_name: trouttv
     hostname: trouttv
 
     ports:
       # Change the first port (8000) to expose on different host port if needed
+      # Examples: "8080:8000" or "9000:8000"
       - "8000:8000"
 
     volumes:

@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     # Directory paths
     channels_dir: Path = Path("D:/claude/TroutTV/data/channels")
     media_dir: Path = Path("D:/claude/TroutTV/data/media")
+    logos_dir: Path = Path("D:/claude/TroutTV/data/logos")
     streams_dir: Path = Path("D:/claude/TroutTV/streams")
 
     # Stream settings
@@ -25,6 +26,11 @@ class Settings(BaseSettings):
     # EPG settings
     epg_days_ahead: int = 2
 
+    # File upload settings
+    allowed_logo_extensions: list[str] = ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp']
+    max_logo_size_mb: int = 5
+    allowed_media_extensions: list[str] = ['.mp4', '.mkv', '.avi', '.mov', '.ts', '.m4v']
+
     class Config:
         env_file = ".env"
         case_sensitive = False
@@ -34,6 +40,7 @@ class Settings(BaseSettings):
         # Ensure directories exist
         self.channels_dir.mkdir(parents=True, exist_ok=True)
         self.media_dir.mkdir(parents=True, exist_ok=True)
+        self.logos_dir.mkdir(parents=True, exist_ok=True)
         self.streams_dir.mkdir(parents=True, exist_ok=True)
 
 

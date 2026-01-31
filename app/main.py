@@ -6,7 +6,7 @@ from fastapi.responses import RedirectResponse
 from pathlib import Path
 
 from app.config import settings
-from app.routers import channels, streaming, metadata
+from app.routers import channels, streaming, metadata, uploads
 from app.services.stream_manager import stream_manager
 from app.utils.ffmpeg import ffmpeg_builder
 
@@ -79,11 +79,16 @@ app = FastAPI(
 app.include_router(channels.router)
 app.include_router(streaming.router)
 app.include_router(metadata.router)
+app.include_router(uploads.router)
 
 # Mount static files for web UI
 web_dir = Path(__file__).parent.parent / "web"
 if web_dir.exists():
     app.mount("/web", StaticFiles(directory=str(web_dir)), name="web")
+
+# Mount static files for logos
+if settings.logos_dir.exists():
+    app.mount("/logos", StaticFiles(directory=str(settings.logos_dir)), name="logos")
 
 
 @app.get("/")

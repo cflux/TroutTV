@@ -76,10 +76,23 @@ class ChannelManager:
         return channel
 
     def delete_channel(self, channel_id: str) -> bool:
-        """Delete a channel."""
+        """Delete a channel and its associated logo file."""
         json_file = self.channels_dir / f"{channel_id}.json"
         if not json_file.exists():
             return False
+
+        # Check if channel has a logo file to delete
+        try:
+            channel = self.get_channel(channel_id)
+            if channel and channel.logo_url and channel.logo_url.startswith('/logos/'):
+                # Extract filename from URL
+                logo_filename = channel.logo_url.replace('/logos/', '')
+                logo_file = settings.logos_dir / logo_filename
+                if logo_file.exists():
+                    logo_file.unlink()
+        except Exception as e:
+            print(f"Error deleting logo for channel {channel_id}: {e}")
+            # Continue with channel deletion even if logo deletion fails
 
         json_file.unlink()
         return True

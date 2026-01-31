@@ -53,8 +53,27 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="channelLogo">Logo URL</label>
-                        <input type="url" id="channelLogo" name="logo_url" placeholder="https://example.com/logo.png">
+                        <label for="channelLogo">Channel Logo</label>
+                        <div class="logo-upload-section">
+                            <div class="logo-preview-container">
+                                <img id="logoPreview" src="" alt="Logo preview" class="logo-preview" style="display: none;">
+                                <div id="logoPlaceholder" class="logo-placeholder">No logo selected</div>
+                            </div>
+                            <div class="logo-input-group">
+                                <div>
+                                    <input type="radio" id="logoTypeUpload" name="logoType" value="upload" checked>
+                                    <label for="logoTypeUpload">Upload Image</label>
+                                </div>
+                                <input type="file" id="logoFileInput" accept="image/*" style="display: block; margin-top: 5px;">
+
+                                <div style="margin-top: 10px;">
+                                    <input type="radio" id="logoTypeUrl" name="logoType" value="url">
+                                    <label for="logoTypeUrl">Use URL</label>
+                                </div>
+                                <input type="url" id="logoUrlInput" placeholder="https://example.com/logo.png" style="display: none; margin-top: 5px;">
+                            </div>
+                            <input type="hidden" id="currentLogoUrl" name="logo_url">
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -117,6 +136,25 @@
                         <button type="submit" class="btn btn-primary">Save Channel</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Media Browser Modal -->
+    <div id="mediaBrowserModal" class="modal">
+        <div class="modal-content media-browser-modal">
+            <div class="modal-header">
+                <h2>Select Media File</h2>
+                <span class="close-media-browser">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="breadcrumb" id="mediaBreadcrumb"></div>
+                <div class="media-file-list" id="mediaFileList">
+                    <p class="loading">Loading files...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelMediaBrowser">Cancel</button>
             </div>
         </div>
     </div>
