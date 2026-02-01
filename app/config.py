@@ -14,6 +14,7 @@ class Settings(BaseSettings):
 
     # Directory paths
     channels_dir: Path = Path("D:/claude/TroutTV/data/channels")
+    playlists_dir: Path = Path("D:/claude/TroutTV/data/playlists")
     media_dir: Path = Path("D:/claude/TroutTV/data/media")
     logos_dir: Path = Path("D:/claude/TroutTV/data/logos")
     streams_dir: Path = Path("D:/claude/TroutTV/streams")
@@ -42,6 +43,7 @@ class Settings(BaseSettings):
         super().__init__(**kwargs)
         # Ensure directories exist
         self.channels_dir.mkdir(parents=True, exist_ok=True)
+        self.playlists_dir.mkdir(parents=True, exist_ok=True)
         self.media_dir.mkdir(parents=True, exist_ok=True)
         self.logos_dir.mkdir(parents=True, exist_ok=True)
         self.streams_dir.mkdir(parents=True, exist_ok=True)

@@ -7,7 +7,7 @@ from fastapi.responses import RedirectResponse
 from pathlib import Path
 
 from app.config import settings, VERSION
-from app.routers import channels, streaming, metadata, uploads
+from app.routers import channels, streaming, metadata, uploads, playlists
 from app.services.stream_manager import stream_manager
 from app.utils.ffmpeg import ffmpeg_builder
 
@@ -87,6 +87,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(channels.router)
+app.include_router(playlists.router)
 app.include_router(streaming.router)
 app.include_router(metadata.router)
 app.include_router(uploads.router)

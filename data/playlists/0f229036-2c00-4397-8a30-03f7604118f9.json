@@ -1,0 +1,25 @@
+{
+  "id": "0f229036-2c00-4397-8a30-03f7604118f9",
+  "name": "Sample Channel Playlist",
+  "description": "Migrated from channel Sample Channel",
+  "items": [
+    {
+      "file_path": "D:/claude/TroutTV/data/media/sample1.mp4",
+      "duration": 600,
+      "title": "Sample Video 1",
+      "description": "First sample video"
+    },
+    {
+      "file_path": "D:/claude/TroutTV/data/media/sample2.mp4",
+      "duration": 600,
+      "title": "Sample Video 2",
+      "description": "Second sample video"
+    }
+  ],
+  "created_at": "2026-02-01T21:49:10.204648Z",
+  "updated_at": "2026-02-01T21:49:10.204648Z",
+  "tags": [
+    "migrated",
+    "general"
+  ]
+}

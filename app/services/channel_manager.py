@@ -40,8 +40,18 @@ class ChannelManager:
             print(f"Error loading channel {channel_id}: {e}")
             return None
 
+    def validate_channel(self, channel: Channel) -> None:
+        """Validate channel references valid playlist."""
+        if channel.playlist_id:
+            from app.services.playlist_manager import playlist_manager
+            if not playlist_manager.get_playlist(channel.playlist_id):
+                raise ValueError(f"Playlist {channel.playlist_id} not found")
+
     def create_channel(self, channel: Channel) -> Channel:
         """Create a new channel."""
+        # Validate playlist reference
+        self.validate_channel(channel)
+
         # Generate ID if not provided
         if not channel.id:
             channel.id = str(uuid.uuid4())
@@ -66,6 +76,9 @@ class ChannelManager:
         if not json_file.exists():
             return None
 
+        # Validate playlist reference
+        self.validate_channel(channel)
+
         # Ensure ID matches
         channel.id = channel_id
 
@@ -74,6 +87,31 @@ class ChannelManager:
             json.dump(channel.model_dump(mode='json'), f, indent=2, default=str)
 
         return channel
+
+    def get_channel_with_playlist(self, channel_id: str) -> Optional[dict]:
+        """Get channel with resolved playlist data."""
+        from app.services.playlist_manager import playlist_manager
+
+        channel = self.get_channel(channel_id)
+        if not channel:
+            return None
+
+        result = channel.model_dump()
+
+        # Resolve playlist reference
+        if channel.playlist_id:
+            playlist = playlist_manager.get_playlist(channel.playlist_id)
+            if playlist:
+                result['playlist_items'] = playlist.items
+                result['playlist_name'] = playlist.name
+            else:
+                result['playlist_items'] = []
+                result['playlist_name'] = None
+        else:
+            result['playlist_items'] = []
+            result['playlist_name'] = None
+
+        return result
 
     def delete_channel(self, channel_id: str) -> bool:
         """Delete a channel and its associated logo file."""

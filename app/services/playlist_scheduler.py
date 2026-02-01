@@ -37,7 +37,19 @@ class PlaylistScheduler:
         Returns:
             Tuple of (file_path, seek_seconds, title) or None if playlist is empty
         """
-        if not channel.playlist:
+        # Resolve playlist items
+        from app.services.playlist_manager import playlist_manager
+
+        playlist_items = []
+        if channel.playlist_id:
+            playlist = playlist_manager.get_playlist(channel.playlist_id)
+            if playlist:
+                playlist_items = playlist.items
+        elif channel.playlist:
+            # Fallback to embedded playlist for backward compatibility
+            playlist_items = channel.playlist
+
+        if not playlist_items:
             return None
 
         # Calculate elapsed time since start
@@ -52,10 +64,10 @@ class PlaylistScheduler:
 
         # If elapsed is negative (start time in future), wait at first item
         if elapsed < 0:
-            return (channel.playlist[0].file_path, 0, channel.playlist[0].title)
+            return (playlist_items[0].file_path, 0, playlist_items[0].title)
 
         # Calculate total playlist duration
-        total_duration = sum(item.duration for item in channel.playlist)
+        total_duration = sum(item.duration for item in playlist_items)
 
         if total_duration == 0:
             return None
@@ -65,19 +77,19 @@ class PlaylistScheduler:
             elapsed = elapsed % total_duration
         elif elapsed >= total_duration:
             # Non-looping playlist has ended, return last item at end position
-            last_item = channel.playlist[-1]
+            last_item = playlist_items[-1]
             return (last_item.file_path, last_item.duration, last_item.title)
 
         # Find current item and seek position
         accumulated = 0
-        for item in channel.playlist:
+        for item in playlist_items:
             if accumulated + item.duration > elapsed:
                 seek = elapsed - accumulated
                 return (item.file_path, seek, item.title)
             accumulated += item.duration
 
         # Fallback (shouldn't reach here)
-        return (channel.playlist[0].file_path, 0, channel.playlist[0].title)
+        return (playlist_items[0].file_path, 0, playlist_items[0].title)
 
     def get_upcoming_programs(self, channel: Channel, hours_ahead: int = 6) -> list:
         """
@@ -86,7 +98,19 @@ class PlaylistScheduler:
         Returns:
             List of tuples: (start_time, end_time, title, description)
         """
-        if not channel.playlist:
+        # Resolve playlist items
+        from app.services.playlist_manager import playlist_manager
+
+        playlist_items = []
+        if channel.playlist_id:
+            playlist = playlist_manager.get_playlist(channel.playlist_id)
+            if playlist:
+                playlist_items = playlist.items
+        elif channel.playlist:
+            # Fallback to embedded playlist for backward compatibility
+            playlist_items = channel.playlist
+
+        if not playlist_items:
             return []
 
         programs = []
@@ -100,7 +124,7 @@ class PlaylistScheduler:
             start_ref = datetime.fromtimestamp(0, tz=timezone.utc)
             elapsed = now_utc.timestamp()
 
-        total_duration = sum(item.duration for item in channel.playlist)
+        total_duration = sum(item.duration for item in playlist_items)
         if total_duration == 0:
             return []
 
@@ -117,7 +141,7 @@ class PlaylistScheduler:
 
         # Find current position in playlist
         if elapsed >= 0:
-            for i, item in enumerate(channel.playlist):
+            for i, item in enumerate(playlist_items):
                 if position_in_playlist + item.duration > elapsed:
                     playlist_index = i
                     # Start from current position in current item
@@ -131,7 +155,7 @@ class PlaylistScheduler:
 
         while current_time.timestamp() < end_time and iterations < max_iterations:
             iterations += 1
-            item = channel.playlist[playlist_index]
+            item = playlist_items[playlist_index]
 
             program_start = current_time
             program_end = datetime.fromtimestamp(
@@ -147,7 +171,7 @@ class PlaylistScheduler:
             ))
 
             current_time = program_end
-            playlist_index = (playlist_index + 1) % len(channel.playlist)
+            playlist_index = (playlist_index + 1) % len(playlist_items)
 
             # If not looping and reached end, stop
             if not channel.loop and playlist_index == 0 and iterations > 0:

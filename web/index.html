@@ -14,6 +14,7 @@
                 <p class="version" id="versionInfo">Loading...</p>
             </div>
             <div class="header-actions">
+                <a href="playlists.html" class="btn btn-secondary">Manage Playlists</a>
                 <button id="addChannelBtn" class="btn btn-primary">Add Channel</button>
                 <a href="/playlist.m3u" class="btn btn-secondary" download>Download M3U</a>
                 <a href="/xmltv.xml" class="btn btn-secondary" download>Download EPG</a>
@@ -93,11 +94,16 @@
                         </label>
                     </div>
 
-                    <h3>Playlist Items</h3>
-                    <div id="playlistItems" class="playlist-items">
-                        <!-- Playlist items will be added here -->
+                    <div class="form-group">
+                        <label for="channelPlaylist">Playlist</label>
+                        <div class="playlist-selector">
+                            <select id="channelPlaylist" name="playlist_id">
+                                <option value="">-- No Playlist --</option>
+                                <!-- Options populated by JavaScript -->
+                            </select>
+                            <a href="playlists.html" class="btn btn-secondary btn-small" target="_blank">Manage Playlists</a>
+                        </div>
                     </div>
-                    <button type="button" id="addPlaylistItemBtn" class="btn btn-secondary">Add Item</button>
 
                     <h3>Stream Settings</h3>
                     <div class="form-row">

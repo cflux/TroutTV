@@ -28,5 +28,7 @@
     "transcode_preset": "software_fast",
     "resolution": "1280x720"
   },
-  "enabled": true
+  "enabled": true,
+  "playlist_id": "2b0c40fe-2708-44d6-9532-1ad14374aaea",
+  "scheduled_playlists": []
 }

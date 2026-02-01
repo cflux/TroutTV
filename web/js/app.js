@@ -17,8 +17,7 @@ const channelForm = document.getElementById('channelForm');
 const addChannelBtn = document.getElementById('addChannelBtn');
 const cancelBtn = document.getElementById('cancelBtn');
 const closeBtn = document.querySelector('.close');
-const addPlaylistItemBtn = document.getElementById('addPlaylistItemBtn');
-const playlistItemsContainer = document.getElementById('playlistItems');
+// Removed: playlist items now managed separately in playlists.html
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -32,7 +31,6 @@ function setupEventListeners() {
     cancelBtn.addEventListener('click', closeModal);
     closeBtn.addEventListener('click', closeModal);
     channelForm.addEventListener('submit', handleSubmit);
-    addPlaylistItemBtn.addEventListener('click', addPlaylistItem);
 
     // Setup logo handlers
     setupLogoHandlers();
@@ -112,9 +110,30 @@ function renderChannels() {
     `).join('');
 }
 
-function openModal(channelId = null) {
+async function loadPlaylistsForSelect() {
+    try {
+        const response = await fetch(`${API_BASE}/api/playlists`);
+        const playlists = await response.json();
+
+        const select = document.getElementById('channelPlaylist');
+        select.innerHTML = '<option value="">-- No Playlist --</option>';
+
+        playlists.forEach(playlist => {
+            const option = document.createElement('option');
+            option.value = playlist.id;
+            option.textContent = `${playlist.name} (${playlist.items.length} items)`;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading playlists:', error);
+    }
+}
+
+async function openModal(channelId = null) {
     currentChannelId = channelId;
-    playlistItemCounter = 0;
+
+    // Load playlists for selector
+    await loadPlaylistsForSelect();
 
     if (channelId) {
         // Edit mode
@@ -163,16 +182,16 @@ function openModal(channelId = null) {
         document.getElementById('resolution').value = channel.stream_settings.resolution;
         document.getElementById('transcodePreset').value = channel.stream_settings.transcode_preset;
 
-        // Load playlist items
-        playlistItemsContainer.innerHTML = '';
-        channel.playlist.forEach(item => {
-            addPlaylistItem(item);
-        });
+        // Set selected playlist
+        if (channel.playlist_id) {
+            document.getElementById('channelPlaylist').value = channel.playlist_id;
+        } else {
+            document.getElementById('channelPlaylist').value = '';
+        }
     } else {
         // Create mode
         document.getElementById('modalTitle').textContent = 'Add Channel';
         channelForm.reset();
-        playlistItemsContainer.innerHTML = '';
         document.getElementById('channelId').value = '';
 
         // Reset logo state
@@ -276,40 +295,7 @@ async function uploadChannelLogo(channelId, file) {
     }
 }
 
-function addPlaylistItem(item = null) {
-    const itemId = playlistItemCounter++;
-    const itemDiv = document.createElement('div');
-    itemDiv.className = 'playlist-item';
-    itemDiv.dataset.itemId = itemId;
-
-    itemDiv.innerHTML = `
-        <div class="playlist-item-header">
-            <strong>Item ${itemId + 1}</strong>
-            <button type="button" class="btn btn-danger btn-small" onclick="removePlaylistItem(${itemId})">Remove</button>
-        </div>
-        <div class="playlist-file-input-group">
-            <input type="text" placeholder="File Path" class="playlist-file-path" value="${item ? escapeHtml(item.file_path) : ''}" readonly required>
-            <button type="button" class="btn btn-secondary btn-small browse-media-btn">Browse</button>
-        </div>
-        <input type="number" placeholder="Duration (seconds)" class="playlist-duration" min="1" value="${item ? item.duration : ''}" required>
-        <input type="text" placeholder="Title" class="playlist-title" value="${item ? escapeHtml(item.title) : ''}" required>
-        <input type="text" placeholder="Description (optional)" class="playlist-description" value="${item ? escapeHtml(item.description || '') : ''}">
-    `;
-
-    playlistItemsContainer.appendChild(itemDiv);
-
-    // Add event listener for browse button
-    const browseBtn = itemDiv.querySelector('.browse-media-btn');
-    const fileInput = itemDiv.querySelector('.playlist-file-path');
-    browseBtn.addEventListener('click', () => openMediaBrowser(fileInput));
-}
-
-function removePlaylistItem(itemId) {
-    const itemDiv = document.querySelector(`[data-item-id="${itemId}"]`);
-    if (itemDiv) {
-        itemDiv.remove();
-    }
-}
+// Playlist item management moved to playlists.js
 
 async function openMediaBrowser(inputElement) {
     currentPlaylistInput = inputElement;
@@ -428,23 +414,8 @@ function formatDuration(seconds) {
 async function handleSubmit(e) {
     e.preventDefault();
 
-    // Collect playlist items
-    const playlistItems = [];
-    const itemDivs = playlistItemsContainer.querySelectorAll('.playlist-item');
-
-    itemDivs.forEach(itemDiv => {
-        const filePath = itemDiv.querySelector('.playlist-file-path').value;
-        const duration = parseInt(itemDiv.querySelector('.playlist-duration').value);
-        const title = itemDiv.querySelector('.playlist-title').value;
-        const description = itemDiv.querySelector('.playlist-description').value;
-
-        playlistItems.push({
-            file_path: filePath,
-            duration: duration,
-            title: title,
-            description: description
-        });
-    });
+    // Get selected playlist ID
+    const playlistId = document.getElementById('channelPlaylist').value || null;
 
     // Determine logo URL
     let logoUrl = null;
@@ -466,7 +437,9 @@ async function handleSubmit(e) {
         number: parseInt(document.getElementById('channelNumber').value),
         category: document.getElementById('channelCategory').value,
         logo_url: logoUrl,
-        playlist: playlistItems,
+        playlist_id: playlistId,
+        playlist: [],  // Empty for backward compatibility
+        scheduled_playlists: [],
         loop: document.getElementById('channelLoop').checked,
         start_time: null,
         stream_settings: {
