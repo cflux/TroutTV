@@ -56,15 +56,21 @@ class StreamManager:
 
         file_path, seek, title = media_info
 
+        # Convert to Path object and resolve relative paths
+        path_obj = Path(file_path)
+        if not path_obj.is_absolute():
+            # If relative, prepend media_dir
+            path_obj = settings.media_dir / file_path
+
         # Verify file exists
-        if not Path(file_path).exists():
-            print(f"Media file not found: {file_path}")
+        if not path_obj.exists():
+            print(f"Media file not found: {path_obj}")
             return False
 
-        # Build FFmpeg command
+        # Build FFmpeg command (use absolute path)
         output_dir = self.streams_dir / channel_id
         cmd = ffmpeg_builder.build_hls_command(
-            file_path,
+            str(path_obj),
             output_dir,
             seek,
             channel.stream_settings
