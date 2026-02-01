@@ -3,6 +3,7 @@ const API_BASE = '';
 
 // Global state
 let channels = [];
+let playlists = [];
 let currentChannelId = null;
 let playlistItemCounter = 0;
 let currentMediaPath = '';
@@ -69,8 +70,14 @@ async function loadVersion() {
 
 async function loadChannels() {
     try {
-        const response = await fetch(`${API_BASE}/api/channels`);
-        channels = await response.json();
+        // Load both channels and playlists
+        const [channelsResponse, playlistsResponse] = await Promise.all([
+            fetch(`${API_BASE}/api/channels`),
+            fetch(`${API_BASE}/api/playlists`)
+        ]);
+
+        channels = await channelsResponse.json();
+        playlists = await playlistsResponse.json();
         renderChannels();
     } catch (error) {
         console.error('Error loading channels:', error);
@@ -84,7 +91,24 @@ function renderChannels() {
         return;
     }
 
-    channelList.innerHTML = channels.map(channel => `
+    // Create playlist lookup map
+    const playlistMap = {};
+    playlists.forEach(playlist => {
+        playlistMap[playlist.id] = playlist;
+    });
+
+    channelList.innerHTML = channels.map(channel => {
+        // Get playlist info
+        let playlistInfo = 'No playlist';
+        if (channel.playlist_id && playlistMap[channel.playlist_id]) {
+            const playlist = playlistMap[channel.playlist_id];
+            playlistInfo = `${escapeHtml(playlist.name)} (${playlist.items.length} items)`;
+        } else if (channel.playlist && channel.playlist.length > 0) {
+            // Fallback for old embedded playlists
+            playlistInfo = `${channel.playlist.length} items`;
+        }
+
+        return `
         <div class="channel-card">
             <div class="channel-header">
                 <div class="channel-info">
@@ -98,7 +122,7 @@ function renderChannels() {
             </div>
             <div class="channel-details">
                 <div><strong>Category:</strong> ${escapeHtml(channel.category)}</div>
-                <div><strong>Playlist:</strong> ${channel.playlist.length} items</div>
+                <div><strong>Playlist:</strong> ${playlistInfo}</div>
                 <div><strong>Loop:</strong> ${channel.loop ? 'Yes' : 'No'}</div>
             </div>
             <div class="channel-actions">
@@ -107,7 +131,8 @@ function renderChannels() {
                 <a href="/stream/${channel.id}/master.m3u8" class="btn btn-secondary btn-small" target="_blank">Play</a>
             </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 async function loadPlaylistsForSelect() {

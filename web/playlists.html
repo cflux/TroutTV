@@ -66,17 +66,28 @@
     <div id="mediaBrowserModal" class="modal">
         <div class="modal-content media-browser-modal">
             <div class="modal-header">
-                <h2>Select Media File</h2>
+                <h2>Select Media Files</h2>
                 <span class="close-media-browser">&times;</span>
             </div>
             <div class="modal-body">
                 <div class="breadcrumb" id="mediaBreadcrumb"></div>
+                <div class="media-browser-toolbar">
+                    <label>
+                        <input type="checkbox" id="selectAllFiles"> Select All Files
+                    </label>
+                    <button type="button" class="btn btn-primary btn-small" id="addAllInFolder" style="display:none;">
+                        Add All Files in Folder
+                    </button>
+                </div>
                 <div class="media-file-list" id="mediaFileList">
                     <p class="loading">Loading files...</p>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" id="cancelMediaBrowser">Cancel</button>
+                <button type="button" class="btn btn-primary" id="addSelectedFiles" style="display:none;">
+                    Add Selected Files (<span id="selectedCount">0</span>)
+                </button>
             </div>
         </div>
     </div>

@@ -7,6 +7,8 @@ let currentPlaylistId = null;
 let playlistItemCounter = 0;
 let currentMediaPath = '';
 let currentPlaylistInput = null;
+let selectedMediaFiles = [];
+let allMediaFiles = [];
 
 // DOM elements
 const playlistList = document.getElementById('playlistList');
@@ -35,11 +37,24 @@ function setupEventListeners() {
     // Media browser modal handlers
     const closeMediaBrowserBtn = document.querySelector('.close-media-browser');
     const cancelMediaBrowserBtn = document.getElementById('cancelMediaBrowser');
+    const selectAllFilesBtn = document.getElementById('selectAllFiles');
+    const addSelectedFilesBtn = document.getElementById('addSelectedFiles');
+    const addAllInFolderBtn = document.getElementById('addAllInFolder');
+
     if (closeMediaBrowserBtn) {
         closeMediaBrowserBtn.addEventListener('click', closeMediaBrowser);
     }
     if (cancelMediaBrowserBtn) {
         cancelMediaBrowserBtn.addEventListener('click', closeMediaBrowser);
+    }
+    if (selectAllFilesBtn) {
+        selectAllFilesBtn.addEventListener('change', toggleSelectAll);
+    }
+    if (addSelectedFilesBtn) {
+        addSelectedFilesBtn.addEventListener('click', addSelectedFilesToPlaylist);
+    }
+    if (addAllInFolderBtn) {
+        addAllInFolderBtn.addEventListener('click', addAllFilesInFolder);
     }
 
     // Close modals when clicking outside
@@ -231,7 +246,11 @@ function addPlaylistItem(item = null) {
     itemDiv.innerHTML = `
         <div class="playlist-item-header">
             <strong>Item ${itemId + 1}</strong>
-            <button type="button" class="btn btn-danger btn-small" onclick="removePlaylistItem(${itemId})">Remove</button>
+            <div class="playlist-item-controls">
+                <button type="button" class="btn btn-secondary btn-small" onclick="movePlaylistItemUp(${itemId})" title="Move Up">↑</button>
+                <button type="button" class="btn btn-secondary btn-small" onclick="movePlaylistItemDown(${itemId})" title="Move Down">↓</button>
+                <button type="button" class="btn btn-danger btn-small" onclick="removePlaylistItem(${itemId})">Remove</button>
+            </div>
         </div>
         <div class="playlist-file-input-group">
             <input type="text" placeholder="File Path" class="playlist-file-path" value="${item ? escapeHtml(item.file_path) : ''}" readonly required>
@@ -257,10 +276,26 @@ function removePlaylistItem(itemId) {
     }
 }
 
+function movePlaylistItemUp(itemId) {
+    const itemDiv = document.querySelector(`[data-item-id="${itemId}"]`);
+    if (itemDiv && itemDiv.previousElementSibling) {
+        playlistItemsContainer.insertBefore(itemDiv, itemDiv.previousElementSibling);
+    }
+}
+
+function movePlaylistItemDown(itemId) {
+    const itemDiv = document.querySelector(`[data-item-id="${itemId}"]`);
+    if (itemDiv && itemDiv.nextElementSibling) {
+        playlistItemsContainer.insertBefore(itemDiv.nextElementSibling, itemDiv);
+    }
+}
+
 // Media Browser Functions
 async function openMediaBrowser(inputElement) {
     currentPlaylistInput = inputElement;
     currentMediaPath = '';
+    selectedMediaFiles = [];
+    allMediaFiles = [];
     document.getElementById('mediaBrowserModal').style.display = 'block';
     await loadMediaFiles('');
 }
@@ -268,12 +303,23 @@ async function openMediaBrowser(inputElement) {
 function closeMediaBrowser() {
     document.getElementById('mediaBrowserModal').style.display = 'none';
     currentPlaylistInput = null;
+    selectedMediaFiles = [];
+    allMediaFiles = [];
+    updateSelectedCount();
 }
 
 async function loadMediaFiles(path) {
     currentMediaPath = path;
     const fileList = document.getElementById('mediaFileList');
     const breadcrumb = document.getElementById('mediaBreadcrumb');
+    const addAllBtn = document.getElementById('addAllInFolder');
+    const selectAllCheckbox = document.getElementById('selectAllFiles');
+
+    // Reset selection
+    selectedMediaFiles = [];
+    allMediaFiles = [];
+    selectAllCheckbox.checked = false;
+    updateSelectedCount();
 
     try {
         fileList.innerHTML = '<p class="loading">Loading files...</p>';
@@ -286,10 +332,21 @@ async function loadMediaFiles(path) {
 
         if (data.items.length === 0) {
             fileList.innerHTML = '<p class="loading">No files found</p>';
+            addAllBtn.style.display = 'none';
             return;
         }
 
-        fileList.innerHTML = data.items.map(item => {
+        // Store all files for bulk operations
+        allMediaFiles = data.items.filter(item => item.type === 'file');
+
+        // Show "Add All" button if there are files
+        if (allMediaFiles.length > 0) {
+            addAllBtn.style.display = 'inline-block';
+        } else {
+            addAllBtn.style.display = 'none';
+        }
+
+        fileList.innerHTML = data.items.map((item, index) => {
             if (item.type === 'directory') {
                 return `
                     <div class="media-item media-folder" onclick="navigateToFolder('${escapeHtml(item.path)}')">
@@ -300,10 +357,12 @@ async function loadMediaFiles(path) {
             } else {
                 const sizeStr = formatFileSize(item.size);
                 const durationStr = item.duration ? formatDuration(item.duration) : '';
+                const fileIndex = allMediaFiles.findIndex(f => f.path === item.path);
                 return `
-                    <div class="media-item media-file" onclick="selectMediaFile('${escapeHtml(item.path)}', ${item.duration || 0})">
-                        <span class="media-icon">🎬</span>
-                        <div class="media-info">
+                    <div class="media-item media-file">
+                        <input type="checkbox" class="media-checkbox" data-file-index="${fileIndex}" onchange="toggleFileSelection(${fileIndex})">
+                        <span class="media-icon" onclick="toggleFileCheckbox(${fileIndex})">🎬</span>
+                        <div class="media-info" onclick="toggleFileCheckbox(${fileIndex})">
                             <span class="media-name">${escapeHtml(item.name)}</span>
                             <span class="media-meta">${sizeStr}${durationStr ? ' • ' + durationStr : ''}</span>
                         </div>
@@ -314,6 +373,7 @@ async function loadMediaFiles(path) {
     } catch (error) {
         console.error('Error loading media files:', error);
         fileList.innerHTML = '<p class="loading">Error loading files</p>';
+        addAllBtn.style.display = 'none';
     }
 }
 
@@ -347,12 +407,24 @@ function selectMediaFile(filePath, duration) {
     if (currentPlaylistInput) {
         currentPlaylistInput.value = filePath;
 
-        // Also fill in duration if available
         const itemDiv = currentPlaylistInput.closest('.playlist-item');
-        if (itemDiv && duration) {
-            const durationInput = itemDiv.querySelector('.playlist-duration');
-            if (durationInput && !durationInput.value) {
-                durationInput.value = Math.round(duration);
+        if (itemDiv) {
+            // Fill in duration if available
+            if (duration) {
+                const durationInput = itemDiv.querySelector('.playlist-duration');
+                if (durationInput && !durationInput.value) {
+                    durationInput.value = Math.round(duration);
+                }
+            }
+
+            // Auto-fill title from filename (if title is empty)
+            const titleInput = itemDiv.querySelector('.playlist-title');
+            if (titleInput && !titleInput.value) {
+                // Extract filename from path
+                const filename = filePath.split('/').pop();
+                // Remove file extension
+                const title = filename.replace(/\.[^/.]+$/, '');
+                titleInput.value = title;
             }
         }
 
@@ -386,4 +458,112 @@ function formatDuration(seconds) {
     } else {
         return `${minutes}:${secs.toString().padStart(2, '0')}`;
     }
+}
+
+// Multi-select functions
+function toggleFileCheckbox(fileIndex) {
+    const checkbox = document.querySelector(`[data-file-index="${fileIndex}"]`);
+    if (checkbox) {
+        checkbox.checked = !checkbox.checked;
+        toggleFileSelection(fileIndex);
+    }
+}
+
+function toggleFileSelection(fileIndex) {
+    const file = allMediaFiles[fileIndex];
+    const existingIndex = selectedMediaFiles.findIndex(f => f.path === file.path);
+
+    if (existingIndex >= 0) {
+        selectedMediaFiles.splice(existingIndex, 1);
+    } else {
+        selectedMediaFiles.push(file);
+    }
+
+    updateSelectedCount();
+}
+
+function toggleSelectAll() {
+    const selectAllCheckbox = document.getElementById('selectAllFiles');
+    const checkboxes = document.querySelectorAll('.media-checkbox');
+
+    checkboxes.forEach((checkbox, index) => {
+        checkbox.checked = selectAllCheckbox.checked;
+    });
+
+    if (selectAllCheckbox.checked) {
+        selectedMediaFiles = [...allMediaFiles];
+    } else {
+        selectedMediaFiles = [];
+    }
+
+    updateSelectedCount();
+}
+
+function updateSelectedCount() {
+    const countSpan = document.getElementById('selectedCount');
+    const addSelectedBtn = document.getElementById('addSelectedFiles');
+
+    if (countSpan) {
+        countSpan.textContent = selectedMediaFiles.length;
+    }
+
+    if (addSelectedBtn) {
+        addSelectedBtn.style.display = selectedMediaFiles.length > 0 ? 'inline-block' : 'none';
+    }
+}
+
+function addSelectedFilesToPlaylist() {
+    if (selectedMediaFiles.length === 0) return;
+
+    selectedMediaFiles.forEach(file => {
+        addPlaylistItemFromFile(file.path, file.duration);
+    });
+
+    closeMediaBrowser();
+}
+
+function addAllFilesInFolder() {
+    if (allMediaFiles.length === 0) return;
+
+    allMediaFiles.forEach(file => {
+        addPlaylistItemFromFile(file.path, file.duration);
+    });
+
+    closeMediaBrowser();
+}
+
+function addPlaylistItemFromFile(filePath, duration) {
+    const itemId = playlistItemCounter++;
+    const itemDiv = document.createElement('div');
+    itemDiv.className = 'playlist-item';
+    itemDiv.dataset.itemId = itemId;
+
+    // Extract filename and title
+    const filename = filePath.split('/').pop();
+    const title = filename.replace(/\.[^/.]+$/, '');
+
+    itemDiv.innerHTML = `
+        <div class="playlist-item-header">
+            <strong>Item ${itemId + 1}</strong>
+            <div class="playlist-item-controls">
+                <button type="button" class="btn btn-secondary btn-small" onclick="movePlaylistItemUp(${itemId})" title="Move Up">↑</button>
+                <button type="button" class="btn btn-secondary btn-small" onclick="movePlaylistItemDown(${itemId})" title="Move Down">↓</button>
+                <button type="button" class="btn btn-danger btn-small" onclick="removePlaylistItem(${itemId})">Remove</button>
+            </div>
+        </div>
+        <div class="playlist-file-input-group">
+            <input type="text" placeholder="File Path" class="playlist-file-path" value="${escapeHtml(filePath)}" readonly required>
+            <button type="button" class="btn btn-secondary btn-small browse-media-btn">Browse</button>
+        </div>
+        <input type="number" placeholder="Duration (seconds)" class="playlist-duration" min="1" value="${duration ? Math.round(duration) : ''}" required>
+        <input type="text" placeholder="Title" class="playlist-title" value="${escapeHtml(title)}" required>
+        <input type="text" placeholder="Description (optional)" class="playlist-description" value="">
+    `;
+
+    playlistItemsContainer.appendChild(itemDiv);
+
+    // Add event listener for browse button
+    const browseBtn = itemDiv.querySelector('.browse-media-btn');
+    const fileInput = itemDiv.querySelector('.playlist-file-path');
+    browseBtn.addEventListener('click', () => openMediaBrowser(fileInput));
 }
