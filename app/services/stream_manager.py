@@ -42,14 +42,16 @@ class StreamManager:
             print(f"Channel {channel_id} not found or disabled")
             return False
 
-        if not channel.playlist:
-            print(f"Channel {channel_id} has empty playlist")
+        # Check if channel has a playlist assigned
+        if not channel.playlist_id and not channel.playlist:
+            print(f"Channel {channel_id} has no playlist assigned")
             return False
 
         # Get current media file and seek position
+        # playlist_scheduler will resolve playlist_id reference
         media_info = playlist_scheduler.get_current_media(channel)
         if not media_info:
-            print(f"No media to play for channel {channel_id}")
+            print(f"No media to play for channel {channel_id} (playlist may be empty)")
             return False
 
         file_path, seek, title = media_info
